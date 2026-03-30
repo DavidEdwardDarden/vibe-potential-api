@@ -1,18 +1,14 @@
-export const config = { runtime: 'edge' };
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
  
-export default async function handler(req) {
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      }
-    });
+    return res.status(200).end();
   }
  
   try {
-    const { prompt } = await req.json();
+    const { prompt } = req.body;
     const falKey = process.env.FAL_KEY;
  
     const response = await fetch('https://fal.run/fal-ai/flux/dev', {
@@ -32,20 +28,10 @@ export default async function handler(req) {
     const data = await response.json();
     const imageUrl = data.images?.[0]?.url;
  
-    return new Response(JSON.stringify({ url: imageUrl }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return res.status(200).json({ url: imageUrl });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return res.status(500).json({ error: e.message });
   }
 }
+ 
  
